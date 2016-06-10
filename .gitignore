@@ -9,3 +9,8 @@ application.windows32
 application.windows64
 application.macosx
 build-tmp
+
+*.txt
+*.pdf
+build
+Script
