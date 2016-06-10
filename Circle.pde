@@ -1,24 +1,24 @@
 import geomerative.*;
 
-// int MAX_NUM_TRAILS = 100;
-
-class Trail {
+class Circle {
   public  float   x;
   public  float   y;
   private int   speed;
-  private int     curInd; // current index into the path (points)
+  private int     curInd; // current index into the path/points
   private float   dia;
   private float   multiplier;
   private boolean bFill;
   private boolean bAlive; // only dead when past the end index
 
-  Trail(RPoint[] points, int d, int s, int i, int n, boolean f) {
-    x = points[i].x; // TODO:use random var to replace magic number 0
+  Circle(RPoint[] points, int d, int s, int i, float m, boolean f) {
+    x = points[i].x;
     y = points[i].y;
     dia = d;
     speed = s;
     curInd = i;
-    multiplier = n;
+
+    multiplier = m;
+    
     bFill = f;
     bAlive = true;
   }
@@ -50,6 +50,6 @@ class Trail {
   }
 
   public void updateDia() {
-    dia *= 1.04; // TODO:use random var in p to replace magic number.
+    dia *= multiplier;
   }
 }

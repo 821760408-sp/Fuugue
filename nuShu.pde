@@ -7,15 +7,14 @@ import geomerative.*;
 RShape     shapeA;
 RShape     shapeB;
 RPoint[][] pointsInPaths; // holds the extracted points
-LinkedList trails;
-LinkedList listOfTrails;
-LinkedList listOfPaths;
+LinkedList circles;
+LinkedList listOfCircles;
 
 int SEG_LENGTH       = 2;
 int MIN_DIAMETER     = 1;
-// int   MAX_DIAMETER = 10;
-int MAX_NUM_TRAILS   = 100;
-int CHANCE_NEW_TRAIL = 5;
+int MIN_NUM_CIRCLE   = 50;
+int MAX_NUM_CIRCLE   = 200;
+int CHANCE_NEW_CIRCL = 5;
 int MIN_SPEED        = 1;
 int MAX_SPEED        = 6;
 
@@ -42,39 +41,53 @@ void setup(){
   // Use SEG_LENGTH to set number of points in a path
   RCommand.setSegmentLength(SEG_LENGTH);
   // extract paths and points from the base shape using the above Segmentator settings
-  // pointsInPaths = shapeA.getPointsInPaths();
-  pointsInPaths = shapeB.getPointsInPaths();
+  pointsInPaths = shapeA.getPointsInPaths();
+  // pointsInPaths = shapeB.getPointsInPaths();
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   cp5 = new ControlP5(this);
-  cp5.addSlider("MAX_NUM_TRAILS")
+  int sliderW = 200;
+  int sliderH = 40;
+  int boxH    = sliderH + 5;
+  int handleW = 10;
+  cp5.addSlider("MAX_NUM_CIRCLE")
     .setPosition(0, 0)
-    .setSize(200, 15)
-    .setRange(1, 200)
+    .setSize(sliderW, sliderH)
+    .setRange(MIN_NUM_CIRCLE, MAX_NUM_CIRCLE)
     .setValue(100)
-    .setColorCaptionLabel(color(64));
-  cp5.addSlider("CHANCE_NEW_TRAIL")
-    .setPosition(0, 20)
-    .setSize(200, 15)
+    .setSliderMode(Slider.FLEXIBLE)
+    .setHandleSize(handleW)
+    .setColorCaptionLabel(color(127));
+
+  cp5.addSlider("CHANCE_NEW_CIRCL")
+    .setPosition(0, boxH)
+    .setSize(sliderW, sliderH)
     .setRange(1, 10)
     .setValue(5)
-    .setColorCaptionLabel(color(64));
+    .setSliderMode(Slider.FLEXIBLE)
+    .setHandleSize(handleW)
+    .setColorCaptionLabel(color(127));
+
   cp5.addSlider("MIN_SPEED")
-    .setPosition(0, 40)
-    .setSize(200, 15)
+    .setPosition(0, 2*boxH)
+    .setSize(sliderW, sliderH)
     .setRange(1, 3)
     .setValue(1)
-    .setColorCaptionLabel(color(64));
+    .setSliderMode(Slider.FLEXIBLE)
+    .setHandleSize(handleW)
+    .setColorCaptionLabel(color(127));
+
   cp5.addSlider("MAX_SPEED")
-    .setPosition(0, 60)
-    .setSize(200, 15)
+    .setPosition(0, 3*boxH)
+    .setSize(sliderW, sliderH)
     .setRange(4, 6)
     .setValue(4)
-    .setColorCaptionLabel(color(64));
+    .setSliderMode(Slider.FLEXIBLE)
+    .setHandleSize(handleW)
+    .setColorCaptionLabel(color(127));
 
-  trails       = new LinkedList();
-  listOfTrails = new LinkedList();
-  listOfPaths  = new LinkedList();
+  circles       = new LinkedList();
+  listOfCircles = new LinkedList();
 }
 
 void draw(){
@@ -88,37 +101,37 @@ void draw(){
 
   pushMatrix();
     translate(width/2, height/2);
-    //++++++++++++++++++++++++++++++++++++++++++++++
+    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     for (RPoint[] points : pointsInPaths) {
-
-      if (random(1) < CHANCE_NEW_TRAIL / 100.0) {
+      //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      if (random(1) < CHANCE_NEW_CIRCL / 100.0) {
         int     speed = int(random(MIN_SPEED, MAX_SPEED));
         int     head  = int(random(0, points.length/2));
-        int     num   = int(random(MAX_NUM_TRAILS/10, MAX_NUM_TRAILS));
+        int     num   = int(random(MAX_NUM_CIRCLE/10, MAX_NUM_CIRCLE));
         boolean fill  = random(1) > 0.5 ? true : false;
-        listOfTrails.add(new TrailManager(speed, head, num, fill));
+        listOfCircles.add(new CircleManager(speed, head, num, fill));
       }
-      for (int i = 0; i < listOfTrails.size(); i++) {
-        TrailManager trailMan = (TrailManager) listOfTrails.get(i);
+      for (int i = 0; i < listOfCircles.size(); i++) {
+        CircleManager circMan = (CircleManager) listOfCircles.get(i);
 
-        for (int j = 0; j < trailMan.size(); j++) {
-          Trail trail = (Trail) trailMan.get(j);
-          if (!trail.isAlive()) {
-            trailMan.remove(trail);
+        for (int j = 0; j < circMan.size(); j++) {
+          Circle circ = (Circle) circMan.get(j);
+          if (!circ.isAlive()) {
+            circMan.remove(circ);
           } else {
-            trail.draw(this);
-            trail.update(points);
+            circ.draw(this);
+            circ.update(points);
           }
         }
-        // Keep adding new trails if maximum number of trails not reached
-        if (trailMan.isTrailAlive() && trailMan.size() < trailMan.num) {
-          for (int j = 0; j < trailMan.size(); j++) {
-            Trail trail = (Trail) trailMan.get(j);
-            trail.updateDia();
+        // Keep adding new circles if maximum number of circles not reached
+        if (circMan.isTrailAlive() && circMan.size() < circMan.num) {
+          for (int j = 0; j < circMan.size(); j++) {
+            Circle circ = (Circle) circMan.get(j);
+            circ.updateDia();
           }
-          trailMan.add(new Trail(points, MIN_DIAMETER, trailMan.speed, trailMan.head, trailMan.num, trailMan.fill));
+          circMan.add(new Circle(points, MIN_DIAMETER, circMan.speed, circMan.head, circMan.multiplier, circMan.fill));
         } else {
-          trailMan.killTrail();
+          circMan.killTrail();
         }
 
       }
