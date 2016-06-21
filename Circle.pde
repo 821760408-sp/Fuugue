@@ -10,12 +10,12 @@ class Circle {
   private boolean bFill;
   private boolean bAlive; // only dead when past the end index
 
-  Circle(RPoint[] points, int d, int s, int i, float m, boolean f) {
-    x = points[i].x;
-    y = points[i].y;
+  Circle(RPoint[] points, int d, int s, int h, float m, boolean f) {
+    x = points[h].x;
+    y = points[h].y;
     dia = d;
     speed = s;
-    curInd = i;
+    curInd = h;
 
     multiplier = m;
     
@@ -37,10 +37,10 @@ class Circle {
 
   public void draw( PApplet p ) {
     if (bFill) {
-      p.fill(127, 127);
+      p.fill(25, 127);
     } else {
       p.noFill();
-      p.stroke(127, 127);
+      p.stroke(25, 127);
     }
     p.ellipse( x, y, dia, dia );
   }

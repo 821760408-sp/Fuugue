@@ -4,13 +4,11 @@ import processing.pdf.*;
 import controlP5.*;
 import geomerative.*;
 
-RShape     shapeA;
-RShape     shapeB;
+RShape     logo;
 RPoint[][] pointsInPaths; // holds the extracted points
-LinkedList circles;
-LinkedList listOfCircles;
+LinkedList trailManagerList;
 
-int SEG_LENGTH       = 2;
+int SEG_LENGTH       = 2; // default is 2
 int MIN_DIAMETER     = 1;
 int MIN_NUM_CIRCLE   = 50;
 int MAX_NUM_CIRCLE   = 200;
@@ -23,8 +21,8 @@ boolean bIgnoreStyles = true;
 
 ControlP5 cp5;
 
-void setup(){
-  size(1280, 720, P2D);
+void setup() {
+  size(1920, 1200, P2D);
   smooth();
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -32,17 +30,18 @@ void setup(){
   RG.init(this);
   RG.ignoreStyles(bIgnoreStyles);
 
-  shapeA = RG.loadShape("A-alt.svg");
-  shapeB = RG.loadShape("B-alt.svg");
-  shapeA = RG.centerIn(shapeA, g, 50);
-  shapeB = RG.centerIn(shapeB, g, 50);
+  logo = RG.loadShape("TASAN.svg");
+  logo = RG.centerIn(logo, g, 50);
 
   RCommand.setSegmentator(RCommand.UNIFORMLENGTH);
   // Use SEG_LENGTH to set number of points in a path
   RCommand.setSegmentLength(SEG_LENGTH);
   // extract paths and points from the base shape using the above Segmentator settings
-  pointsInPaths = shapeA.getPointsInPaths();
-  // pointsInPaths = shapeB.getPointsInPaths();
+  pointsInPaths = logo.getPointsInPaths();
+  trailManagerList = new LinkedList();
+  for (int i = 0; i < pointsInPaths.length; i++) {
+    trailManagerList.add(new LinkedList());
+  }
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   cp5 = new ControlP5(this);
@@ -54,7 +53,7 @@ void setup(){
     .setPosition(0, 0)
     .setSize(sliderW, sliderH)
     .setRange(MIN_NUM_CIRCLE, MAX_NUM_CIRCLE)
-    .setValue(100)
+    .setValue(75)
     .setSliderMode(Slider.FLEXIBLE)
     .setHandleSize(handleW)
     .setColorCaptionLabel(color(127));
@@ -85,53 +84,54 @@ void setup(){
     .setSliderMode(Slider.FLEXIBLE)
     .setHandleSize(handleW)
     .setColorCaptionLabel(color(127));
-
-  circles       = new LinkedList();
-  listOfCircles = new LinkedList();
 }
 
-void draw(){
+void draw() {
   // begin recording to PDF
   if (bSaveOneFrame) {
     beginRecord(PDF, "UsingGeomerative-" + timestamp() + ".pdf");
   }
 
-  // background(#2D4D83);
-  background(5);
+  background(255, 127);
 
   pushMatrix();
     translate(width/2, height/2);
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    for (RPoint[] points : pointsInPaths) {
+    for (int i = 0; i < pointsInPaths.length; i++) {
+      RPoint[] points = pointsInPaths[i];
+      LinkedList trailManager = (LinkedList) trailManagerList.get(i);
       //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       if (random(1) < CHANCE_NEW_CIRCL / 100.0) {
         int     speed = int(random(MIN_SPEED, MAX_SPEED));
-        int     head  = int(random(0, points.length/2));
+        int     head  = int(random(0, points.length/3));
         int     num   = int(random(MAX_NUM_CIRCLE/10, MAX_NUM_CIRCLE));
         boolean fill  = random(1) > 0.5 ? true : false;
-        listOfCircles.add(new CircleManager(speed, head, num, fill));
+        trailManager.add(new Trail(speed, head, num, fill));
       }
-      for (int i = 0; i < listOfCircles.size(); i++) {
-        CircleManager circMan = (CircleManager) listOfCircles.get(i);
+      for (int j = 0; j < trailManager.size(); j++) {
+        Trail trail = (Trail) trailManager.get(j);
 
-        for (int j = 0; j < circMan.size(); j++) {
-          Circle circ = (Circle) circMan.get(j);
+        for (int k = 0; k < trail.size(); k++) {
+          Circle circ = (Circle) trail.get(k);
           if (!circ.isAlive()) {
-            circMan.remove(circ);
+            trail.remove(circ);
           } else {
             circ.draw(this);
             circ.update(points);
           }
         }
         // Keep adding new circles if maximum number of circles not reached
-        if (circMan.isTrailAlive() && circMan.size() < circMan.num) {
-          for (int j = 0; j < circMan.size(); j++) {
-            Circle circ = (Circle) circMan.get(j);
+        // TODO: combine conditiosn into an update method of Trail
+        if (trail.size() < trail.num && trail.isTrailAlive()) {
+          for (int k = 0; k < trail.size(); k++) {
+            Circle circ = (Circle) trail.get(k);
             circ.updateDia();
           }
-          circMan.add(new Circle(points, MIN_DIAMETER, circMan.speed, circMan.head, circMan.multiplier, circMan.fill));
-        } else {
-          circMan.killTrail();
+          trail.add(new Circle(points, MIN_DIAMETER, trail.speed, trail.head, trail.multiplier, trail.fill));
+        } else if (trail.isTrailAlive()) {
+          trail.killTrail();
+        } else if (trail.size() == 0) {
+          trailManager.remove(trail);
         }
 
       }

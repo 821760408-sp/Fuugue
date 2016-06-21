@@ -9,8 +9,7 @@ application.windows32
 application.windows64
 application.macosx
 build-tmp
-
+build
 *.txt
 *.pdf
-build
-Script
+_inspiration
