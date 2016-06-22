@@ -39,10 +39,10 @@ class Circle {
 
   public void draw( PApplet p ) {
     if (bFill) {
-      p.fill(127, 127);
+      p.fill(255, 127);
     } else {
       p.noFill();
-      p.stroke(127, 127);
+      p.stroke(255, 127);
     }
     p.ellipse( x, y, dia, dia );
   }

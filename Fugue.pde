@@ -28,7 +28,7 @@ void setup() {
   RG.init(this);
   RG.ignoreStyles(bIgnoreStyles);
 
-  logo = RG.loadShape("TASAN.svg");
+  logo = RG.loadShape("A.svg");
   logo = RG.centerIn(logo, g, 50);
 
   RCommand.setSegmentator(RCommand.UNIFORMLENGTH);
@@ -87,7 +87,7 @@ void draw() {
       if (random(1) < CHANCE_NEW_CIRCL / 100.0) {
         int     speed    = int(random(MIN_SPEED, MAX_SPEED));
         int     head     = int(random(0, points.length / 3));
-        int     capacity = int(random(points.length / 10, min(points.length / 2, 200)));
+        int     capacity = int(map(random(points.length / 10, points.length / 2), points.length / 10, points.length / 2, 50, 200));
         boolean fill     = random(1) > 0.5 ? true : false;
         trailManager.add(new Trail(speed, head, capacity, fill));
       }
