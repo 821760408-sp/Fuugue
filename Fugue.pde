@@ -9,12 +9,10 @@ RPoint[][] pointsInPaths; // holds the extracted points
 LinkedList trailManagerList;
 
 int SEG_LENGTH       = 2; // default is 2
-int MIN_DIAMETER     = 1;
-int MIN_NUM_CIRCLE   = 50;
-int MAX_NUM_CIRCLE   = 200;
+int MIN_DIAMETER     = 1; // default is 1
 int CHANCE_NEW_CIRCL = 5;
-int MIN_SPEED        = 1;
-int MAX_SPEED        = 6;
+int MIN_SPEED        = 4;
+int MAX_SPEED        = 10;
 
 boolean bSaveOneFrame = false;
 boolean bIgnoreStyles = true;
@@ -48,41 +46,26 @@ void setup() {
   int sliderW = 200;
   int sliderH = 40;
   int boxH    = sliderH + 5;
-  int handleW = 10;
-  cp5.addSlider("MAX_NUM_CIRCLE")
-    .setPosition(0, 0)
-    .setSize(sliderW, sliderH)
-    .setRange(MIN_NUM_CIRCLE, MAX_NUM_CIRCLE)
-    .setValue(75)
-    .setSliderMode(Slider.FLEXIBLE)
-    .setHandleSize(handleW)
-    .setColorCaptionLabel(color(127));
 
   cp5.addSlider("CHANCE_NEW_CIRCL")
     .setPosition(0, boxH)
     .setSize(sliderW, sliderH)
     .setRange(1, 10)
     .setValue(5)
-    .setSliderMode(Slider.FLEXIBLE)
-    .setHandleSize(handleW)
     .setColorCaptionLabel(color(127));
 
   cp5.addSlider("MIN_SPEED")
     .setPosition(0, 2*boxH)
     .setSize(sliderW, sliderH)
-    .setRange(1, 3)
-    .setValue(1)
-    .setSliderMode(Slider.FLEXIBLE)
-    .setHandleSize(handleW)
+    .setRange(MIN_SPEED, 6)
+    .setValue(MIN_SPEED)
     .setColorCaptionLabel(color(127));
 
   cp5.addSlider("MAX_SPEED")
     .setPosition(0, 3*boxH)
     .setSize(sliderW, sliderH)
-    .setRange(4, 6)
-    .setValue(4)
-    .setSliderMode(Slider.FLEXIBLE)
-    .setHandleSize(handleW)
+    .setRange(6, MAX_SPEED)
+    .setValue(MAX_SPEED)
     .setColorCaptionLabel(color(127));
 }
 
@@ -92,7 +75,7 @@ void draw() {
     beginRecord(PDF, "UsingGeomerative-" + timestamp() + ".pdf");
   }
 
-  background(255, 127);
+  background(5);
 
   pushMatrix();
     translate(width/2, height/2);
@@ -102,40 +85,50 @@ void draw() {
       LinkedList trailManager = (LinkedList) trailManagerList.get(i);
       //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       if (random(1) < CHANCE_NEW_CIRCL / 100.0) {
-        int     speed = int(random(MIN_SPEED, MAX_SPEED));
-        int     head  = int(random(0, points.length/3));
-        int     num   = int(random(MAX_NUM_CIRCLE/10, MAX_NUM_CIRCLE));
-        boolean fill  = random(1) > 0.5 ? true : false;
-        trailManager.add(new Trail(speed, head, num, fill));
+        int     speed    = int(random(MIN_SPEED, MAX_SPEED));
+        int     head     = int(random(0, points.length / 3));
+        int     capacity = int(random(points.length / 10, min(points.length / 2, 200)));
+        boolean fill     = random(1) > 0.5 ? true : false;
+        trailManager.add(new Trail(speed, head, capacity, fill));
       }
+
       for (int j = 0; j < trailManager.size(); j++) {
         Trail trail = (Trail) trailManager.get(j);
 
-        for (int k = 0; k < trail.size(); k++) {
-          Circle circ = (Circle) trail.get(k);
-          if (!circ.isAlive()) {
-            trail.remove(circ);
-          } else {
-            circ.draw(this);
-            circ.update(points);
-          }
-        }
-        // Keep adding new circles if maximum number of circles not reached
-        // TODO: combine conditiosn into an update method of Trail
-        if (trail.size() < trail.num && trail.isTrailAlive()) {
+        if (trail.isAlive()) { // "Alive" means 1, keep adding new circle and 2, update diameters
+          // If a trail is still "alive", add one more circle to the head of the trail
+          trail.add(new Circle(points, MIN_DIAMETER, trail.getSpeed(), trail.getHead(), trail.getMultiplier(), trail.getFill()));
           for (int k = 0; k < trail.size(); k++) {
             Circle circ = (Circle) trail.get(k);
-            circ.updateDia();
+            // We rely on the circle itself to tell us whether it's still alive
+            if (!circ.isAlive()) {
+              trail.remove(circ);
+            } else {
+              circ.draw(this);
+              circ.updatePos();
+              circ.updateDia();
+            }
           }
-          trail.add(new Circle(points, MIN_DIAMETER, trail.speed, trail.head, trail.multiplier, trail.fill));
-        } else if (trail.isTrailAlive()) {
-          trail.killTrail();
-        } else if (trail.size() == 0) {
-          trailManager.remove(trail);
+          // Test the size of trail to decide whether it should be killed
+          if (trail.bMaxCapReached()) {
+            trail.die();
+          }
+        } else {
+          for (int k = 0; k < trail.size(); k++) {
+            Circle circ = (Circle) trail.get(k);
+            // We rely on the circle itself to tell us whether it's still alive
+            if (!circ.isAlive()) {
+              trail.remove(circ);
+            } else {
+              circ.draw(this);
+              circ.updatePos();
+            }
+          }
+          if (trail.size() == 0) {
+            trailManager.remove(trail);
+          }
         }
-
       }
-
     }
 
     // end recording to PDF
@@ -153,7 +146,7 @@ void keyPressed() {
   }
 }
 
-void mousePressed(){
+void mousePressed() {
   bIgnoreStyles = !bIgnoreStyles;
   RG.ignoreStyles(bIgnoreStyles);
 }

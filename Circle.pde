@@ -1,16 +1,18 @@
 import geomerative.*;
 
 class Circle {
-  public  float   x;
-  public  float   y;
-  private int   speed;
-  private int     curInd; // current index into the path/points
-  private float   dia;
-  private float   multiplier;
-  private boolean bFill;
-  private boolean bAlive; // only dead when past the end index
+  private float    x;
+  private float    y;
+  private int      speed;
+  private int      curInd; // current index into the path/points
+  private float    dia;
+  private float    multiplier;
+  private boolean  bFill;
+  private boolean  bAlive; // only dead when past the end index
+  private RPoint[] points;
 
-  Circle(RPoint[] points, int d, int s, int h, float m, boolean f) {
+  Circle(RPoint[] p, int d, int s, int h, float m, boolean f) {
+    points = p;
     x = points[h].x;
     y = points[h].y;
     dia = d;
@@ -23,33 +25,27 @@ class Circle {
     bAlive = true;
   }
 
-  public void update(RPoint[] points) {
-    if (curInd > points.length - 1) { // if past the end index of the path
-      bAlive = false;
-      return;
-    }
-    if (bAlive) {
+  public void updatePos() {
+    curInd += speed;
+    if (curInd <= points.length - 1) {
       x = points[curInd].x;
       y = points[curInd].y;
-      curInd += speed;
+    } else {
+      bAlive = false;
     }
   }
 
+  public void updateDia() { dia *= multiplier; }
+
   public void draw( PApplet p ) {
     if (bFill) {
-      p.fill(25, 127);
+      p.fill(127, 127);
     } else {
       p.noFill();
-      p.stroke(25, 127);
+      p.stroke(127, 127);
     }
     p.ellipse( x, y, dia, dia );
   }
 
-  public boolean isAlive() {
-    return bAlive;
-  }
-
-  public void updateDia() {
-    dia *= multiplier;
-  }
+  public boolean isAlive() { return bAlive; }
 }
