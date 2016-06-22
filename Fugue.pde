@@ -1,4 +1,3 @@
-import java.io.PrintStream;
 import java.util.LinkedList;
 import processing.pdf.*;
 import controlP5.*;
