@@ -7,7 +7,6 @@ class Trail {
   private int        speed;
   private int        head;
   private int        capacity;
-  // private int        currentCap;
   private float      multiplier;
   private boolean    fill;
 
