@@ -6,7 +6,7 @@ An exercise in [Processing](https://processing.org/) to recreate the [Fugue Iden
 ## Run
 You need to install the [controlP5](http://www.sojamo.de/libraries/controlP5/) and the [geomerative](http://www.ricardmarxer.com/geomerative/) plugins in order to run the demo.
 
-Change the filename in line 31 to that of any svg files of yours.
+Change the filename in line 31 of Fugue.pde to that of any svg files of yours.
 ```processing
 logo = RG.loadShape("A.svg");
 ```
