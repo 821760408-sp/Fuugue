@@ -3,12 +3,14 @@ import processing.pdf.*;
 import controlP5.*;
 import geomerative.*;
 
+String filename = "water_in_lines.svg";
+
 RShape     logo;
 RPoint[][] pointsInPaths; // holds the extracted points
 LinkedList trailManagerList;
 
-int SEG_LENGTH       = 2; // default is 2
-int MIN_DIAMETER     = 1; // default is 1
+int SEG_LENGTH       = 4; // default is 2
+int MIN_DIAMETER     = 5; // default is 1
 int CHANCE_NEW_CIRCL = 5;
 int MIN_SPEED        = 4;
 int MAX_SPEED        = 10;
@@ -19,7 +21,7 @@ boolean bIgnoreStyles = true;
 ControlP5 cp5;
 
 void setup() {
-  size(1920, 1200, P2D);
+  size(1024, 768, P2D);
   smooth();
 
   //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -27,7 +29,7 @@ void setup() {
   RG.init(this);
   RG.ignoreStyles(bIgnoreStyles);
 
-  logo = RG.loadShape("A.svg");
+  logo = RG.loadShape(filename);
   logo = RG.centerIn(logo, g, 50);
 
   RCommand.setSegmentator(RCommand.UNIFORMLENGTH);
